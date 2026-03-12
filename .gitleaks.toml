@@ -1,0 +1,4 @@
+title = "DevSecOps demo gitleaks configuration"
+
+[extend]
+useDefault = true

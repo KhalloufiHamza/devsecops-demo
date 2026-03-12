@@ -1,0 +1,85 @@
+name: Secure CI Demo
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  secure-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Secret scanning with Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build + lint
+        run: mvn -B clean verify checkstyle:check
+
+      - name: Set up Python for Semgrep
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Semgrep
+        run: python -m pip install semgrep
+
+      - name: SAST with Semgrep custom rules
+        run: semgrep scan --config semgrep-rules --error src
+
+      - name: SCA with OWASP Dependency-Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'devsecops-demo'
+          path: '.'
+          format: 'HTML'
+          out: 'reports'
+          args: >
+            --failOnCVSS 7
+
+      - name: Build application jar for DAST
+        run: mvn -B -DskipTests package
+
+      - name: Start application in background
+        run: |
+          nohup java -jar target/devsecops-demo-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8080/ > /dev/null; then
+              echo "Application is up"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Application did not start in time"
+          cat app.log
+          exit 1
+
+      - name: DAST with OWASP ZAP baseline scan
+        run: |
+          mkdir -p reports
+          docker run --rm --network host \
+            -v "$PWD:/zap/wrk/:rw" \
+            -t ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t http://127.0.0.1:8080 -r reports/zap-report.html -J reports/zap-report.json || true
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            reports
+            app.log

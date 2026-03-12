@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -e
+
+echo "[1/2] Running Gitleaks secret scan..."
+gitleaks dir .
+
+echo "[2/2] Running Maven style check..."
+mvn -q checkstyle:check
+
+echo "Pre-commit checks passed."

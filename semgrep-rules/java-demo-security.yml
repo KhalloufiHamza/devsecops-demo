@@ -1,0 +1,35 @@
+rules:
+  - id: demo.java.sql-injection.jdbc-template
+    message: Possible SQL injection: user input is concatenated into an SQL string. Use a parameterized query instead.
+    severity: ERROR
+    languages:
+      - java
+    patterns:
+      - pattern: |
+          String $SQL = $QUERY + $INPUT;
+          ...
+          $J.queryForList($SQL)
+    metadata:
+      category: security
+      technology:
+        - spring
+        - jdbc
+      cwe:
+        - "CWE-89"
+      owasp:
+        - "A03:2021-Injection"
+
+  - id: demo.java.reflected-xss.html-response
+    message: Possible reflected XSS: untrusted input is returned directly in an HTML response.
+    severity: ERROR
+    languages:
+      - java
+    patterns:
+      - pattern: |
+          return "<html><body>" + $INPUT + "</body></html>";
+    metadata:
+      category: security
+      cwe:
+        - "CWE-79"
+      owasp:
+        - "A03:2021-Injection"

@@ -1,0 +1,6 @@
+target/
+*.log
+reports/
+.gitleaks-report.json
+zap-report.html
+zap-report.json
