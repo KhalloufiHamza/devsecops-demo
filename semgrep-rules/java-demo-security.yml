@@ -1,6 +1,6 @@
 rules:
   - id: demo.java.sql-injection.jdbc-template
-    message: Possible SQL injection: user input is concatenated into an SQL string. Use a parameterized query instead.
+    message: "Possible SQL injection: user input is concatenated into an SQL string. Use a parameterized query instead."
     severity: ERROR
     languages:
       - java
@@ -20,7 +20,7 @@ rules:
         - "A03:2021-Injection"
 
   - id: demo.java.reflected-xss.html-response
-    message: Possible reflected XSS: untrusted input is returned directly in an HTML response.
+    message: "Possible reflected XSS: untrusted input is returned directly in an HTML response."
     severity: ERROR
     languages:
       - java
