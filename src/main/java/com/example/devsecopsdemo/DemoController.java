@@ -23,9 +23,11 @@ public class DemoController {
     }
 
     @GetMapping("/search")
-    public List<Map<String, Object>> search(@RequestParam String id) {
-        String sql = "SELECT * FROM users WHERE id = " + id; // Intentionally vulnerable to SQL injection
-        return jdbcTemplate.queryForList(sql);
+    public List<Map<String, Object>> search(@RequestParam Integer id) {
+        return jdbcTemplate.queryForList(
+                "SELECT * FROM users WHERE id = ?",
+                id
+        );
     }
 
     @GetMapping(value = "/echo", produces = "text/html")
