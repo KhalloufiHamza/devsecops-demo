@@ -1,14 +1,22 @@
 rules:
   - id: demo.java.sql-injection.jdbc-template
-    message: "Possible SQL injection: user input is concatenated into an SQL string. Use a parameterized query instead."
+    message: "Possible SQL injection: user input is concatenated into an SQL string and then executed with JdbcTemplate."
     severity: ERROR
     languages:
       - java
     patterns:
-      - pattern: |
-          String $SQL = $QUERY + $INPUT;
-          ...
-          $J.queryForList($SQL)
+      - pattern-inside: |
+          class $C {
+            ...
+            $RET $M(...){
+              ...
+              String $SQL = $LEFT + $RIGHT;
+              ...
+              $J.queryForList($SQL);
+              ...
+            }
+            ...
+          }
     metadata:
       category: security
       technology:
